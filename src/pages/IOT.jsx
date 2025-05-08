@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
+import { useLocalStorage } from "react-use";
+import { requestDevice, getDeviceInfo } from "web-bluetooth";
 
 // BLE device information
 const DEVICE_NAME = "Sahaj Perceptron";
@@ -7,6 +9,21 @@ const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 const HEARTRATE_CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 const SPO2_CHAR_UUID = "92a6c5ed-7ef9-4ef3-b0c4-d6b5de0a8c20";
 const IR_VALUE_CHAR_UUID = "78d27e4e-aa05-4d8c-9bc6-3c6c78c8a05f";
+
+// Health ranges
+const SPO2_RANGES = {
+  DANGER: { min: 0, max: 89, color: "#f87171" },    // Red - danger
+  WARNING: { min: 90, max: 94, color: "#facc15" },  // Yellow - warning
+  GOOD: { min: 95, max: 100, color: "#4ade80" }     // Green - good
+};
+
+const HR_RANGES = {
+  LOW: { min: 0, max: 59, color: "#f87171" },       // Red - too low
+  LOW_NORMAL: { min: 60, max: 69, color: "#facc15" }, // Yellow - borderline low
+  NORMAL: { min: 70, max: 90, color: "#4ade80" },   // Green - good
+  HIGH_NORMAL: { min: 91, max: 100, color: "#facc15" }, // Yellow - borderline high
+  HIGH: { min: 101, max: 200, color: "#f87171" }    // Red - too high
+};
 
 const Gauge = ({ value, label, unit, max = 100 }) => {
   const angle = (value / max) * 180 - 90;
@@ -170,6 +187,9 @@ export default function IoT() {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [deviceInfo, setDeviceInfo] = useState(null);
+  // Store device ID for reconnections
+  const [, setLastConnectedDevice] = useLocalStorage("lastConnectedBleDevice", null);
   
   // BLE device refs
   const bleDeviceRef = useRef(null);
@@ -186,6 +206,9 @@ export default function IoT() {
       
       if (!isNaN(heartRateValue)) {
         setHeartRate(heartRateValue);
+        
+        // Log data point for debugging
+        console.log(`Heart Rate: ${heartRateValue} bpm`);
       }
     } catch (error) {
       console.error("Error processing heart rate data:", error);
@@ -201,6 +224,9 @@ export default function IoT() {
       
       if (!isNaN(spo2Value)) {
         setSpo2(spo2Value);
+        
+        // Log data point for debugging
+        console.log(`SpO2: ${spo2Value}%`);
       }
     } catch (error) {
       console.error("Error processing SpO2 data:", error);
@@ -282,11 +308,33 @@ export default function IoT() {
     try {
       setStatusMessage("Scanning for BLE devices...");
 
-      // Request the BLE device
-      bleDeviceRef.current = await navigator.bluetooth.requestDevice({
-        filters: [{ name: DEVICE_NAME }],
-        optionalServices: [SERVICE_UUID],
-      });
+      // Try to use the web-bluetooth library for better error handling
+      try {
+        // Request the BLE device using the helper library
+        const device = await requestDevice({
+          filters: [{ name: DEVICE_NAME }],
+          optionalServices: [SERVICE_UUID]
+        });
+        bleDeviceRef.current = device;
+        
+        // Store device ID for future connections
+        if (device.id) {
+          setLastConnectedDevice(device.id);
+        }
+        
+        // Get device info
+        const info = await getDeviceInfo(device);
+        setDeviceInfo(info);
+        
+      } catch (libError) {
+        console.warn("Web-bluetooth library error, falling back to native API", libError);
+        
+        // Fall back to native API if library fails
+        bleDeviceRef.current = await navigator.bluetooth.requestDevice({
+          filters: [{ name: DEVICE_NAME }],
+          optionalServices: [SERVICE_UUID],
+        });
+      }
 
       setStatusMessage("Connecting to device...");
       const server = await bleDeviceRef.current.gatt.connect();
@@ -331,12 +379,34 @@ export default function IoT() {
       resetConnection();
       setIsLoading(false);
     }
-  }, [handleHeartRateChange, handleSpo2Change, handleDisconnection, resetConnection]);
+  }, [handleHeartRateChange, handleSpo2Change, handleDisconnection, resetConnection, setLastConnectedDevice]);
 
   // Start monitoring - connect to BLE
   const startMonitoring = () => {
     connectToBLE();
   };
+  
+  // Get health status text based on vitals
+  const getHealthStatus = () => {
+    if (!isConnected || (spo2 === 0 && heartRate === 0)) {
+      return { text: "Not monitoring", color: "text-gray-400" };
+    }
+    
+    // Check SpO2
+    if (spo2 < SPO2_RANGES.WARNING.min) {
+      return { text: "Critical: Low oxygen!", color: "text-red-500 font-bold animate-pulse" };
+    }
+    
+    // Check HR
+    if (heartRate < HR_RANGES.LOW.max || heartRate > HR_RANGES.HIGH.min) {
+      return { text: "Warning: Abnormal heart rate", color: "text-yellow-500" };
+    }
+    
+    // All good
+    return { text: "Vitals normal", color: "text-green-500" };
+  };
+  
+  const healthStatus = getHealthStatus();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0A0F18] to-[#1A1F2E] text-white flex flex-col items-center pt-20 gap-8 p-4">
@@ -423,16 +493,24 @@ export default function IoT() {
 
       {started && isConnected && (
         <motion.div 
-          className="mt-6 max-w-xl text-center text-sm text-gray-400"
+          className="mt-6 max-w-xl text-center text-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <p>Your Sahaj Perceptron device is now transmitting real-time data.</p>
-          <p className="mt-2">
-            <span className={`inline-block w-3 h-3 rounded-full mr-2 ${isConnected ? "bg-green-400 animate-pulse" : "bg-red-500"}`}></span>
-            {isConnected ? "Live monitoring" : "Disconnected"}
+          <p className="text-gray-400">Your Sahaj Perceptron device is now transmitting real-time data.</p>
+          <p className="mt-2 flex items-center justify-center gap-2">
+            <span className={`inline-block w-3 h-3 rounded-full ${isConnected ? "bg-green-400 animate-pulse" : "bg-red-500"}`}></span>
+            <span className={healthStatus.color}>{healthStatus.text}</span>
           </p>
+          
+          {deviceInfo && (
+            <div className="mt-4 p-3 bg-slate-800/50 rounded-lg text-xs text-left">
+              <p className="font-semibold text-blue-300">Device Information:</p>
+              <p>Name: {deviceInfo.name || DEVICE_NAME}</p>
+              <p>ID: {deviceInfo.id ? deviceInfo.id.substring(0, 8) + '...' : 'Unknown'}</p>
+            </div>
+          )}
         </motion.div>
       )}
     </div>
