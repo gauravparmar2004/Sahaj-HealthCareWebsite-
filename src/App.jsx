@@ -7,6 +7,7 @@ import AllDoctors from './pages/AllDoctors';
 import InteractionPage from './components/InteractionPage';
 import AiAssistant from './pages/AiAssistant';
 import AiHome from './pages/AiHome';
+import IoT from './pages/IoT';
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
             <Route path='/interactionpage' element={<InteractionPage/>}/>
             <Route path='/aiassistant' element={<AiAssistant/>}/>
             <Route path='/aihome' element={<AiHome/>}/>
+            <Route path='/iot' element={<IoT/>}/>
           </Routes>
           <Footer/>
     </Router>
