@@ -38,8 +38,8 @@ const AiAssistant = ({ user = "Gaurav" }) => {
             </span>
           </label>
 
-          <button className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-md">
-            Upload →
+          <button className="bg-gray-700 hover:bg-blue-700 px-5 py-2 rounded-full font-extrabold text-3xl  cursor-pointer">
+          ↑
           </button>
         </div>
 

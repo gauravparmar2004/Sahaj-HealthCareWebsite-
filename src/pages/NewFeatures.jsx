@@ -13,7 +13,7 @@ const features = [
     icon: <FaBrain className="text-blue-500 text-3xl" />,
     title: "Telemedicine App",
     description: "Receive personalized meditation and mental wellness routines based on mood tracking.",
-    link: "/alldoctors",  // 👈 this should match the Route path
+    link: "/doctors", 
   },
   {
     icon: <FaPills className="text-blue-500 text-3xl" />,
