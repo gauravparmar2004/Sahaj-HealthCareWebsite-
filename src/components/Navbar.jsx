@@ -30,7 +30,7 @@ const Navbar = () => {
     <nav className="bg-[#111827] text-white px-6 py-3 flex justify-between items-center sticky top-0 z-50">
       
       <div className="flex items-center space-x-2">
-        <img className="h-18 w-28 rounded-full object-cover" src={Logo} alt="Profile" />
+        <img className="h-16 w-32 rounded-full object-cover" src={Logo} alt="Profile" />
 
       </div>
 
@@ -52,8 +52,8 @@ const Navbar = () => {
       </ul>
       <div className="relative">
         {!isLoggedIn ? (
-          <div className="flex items-center space-x-4">
-            <button onClick={() => navigate('/login')} className="text-gray-300 hover:text-white cursor-pointer">
+          <div className="flex items-center space-x-12">
+            <button onClick={() => navigate('/login')} className="text-gray-300 hover:text-white cursor-pointer font-bold">
               Log in
             </button>
             <button
@@ -64,7 +64,7 @@ const Navbar = () => {
             </button>
           </div>
         ) : (
-          <div className="relative">
+          <div className="relative ">
             <button onClick={() => setShowDropdown(!showDropdown)} className="focus:outline-none">
               <UserCircle className="w-8 h-8 text-gray-300 hover:text-white" />
             </button>

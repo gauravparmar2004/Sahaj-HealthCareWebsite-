@@ -3,6 +3,8 @@ import NewFeatures from "./NewFeatures";
 import DailyWellness from "./DailyWellness";
 import UserFeedback from "./UserFeedback";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import DashboardImg from "../assets/HomePageImgDashboard.png";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -10,16 +12,25 @@ const HomePage = () => {
     <div>
       <div className="bg-[#171F2D] min-h-screen text-white flex items-center justify-center px-4">
         <div className="max-w-7xl w-full flex flex-col md:flex-row items-center justify-between">
-          {/* Text Section */}
-          <div className="md:w-1/2 space-y-8">
-            <h1 className="text-4xl sm:text-5xl font-bold text-white -mt-32">
-              SAHAJ - Your AI <br /> Your Health Our Priority
+          
+          {/* Animated Text Section */}
+          <motion.div
+            className="md:w-1/2 space-y-8"
+            initial={{ x: -100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 1 }}
+          >
+            <h1 className="text-4xl sm:text-6xl font-bold text-white -mt-22 leading-14 mb-5">
+              SAHAJ - Your AI <br />  
+              <span className="sm:text-5xl">Your Health Our Priority</span>
             </h1>
-            <p className="text-gray-300 text-lg">
+            <p className="text-gray-300 text-2xl">
               Personalized health insights powered by artificial intelligence
             </p>
-            <div className="flex space-x-4">
-              <button
+            <div className="flex space-x-6 pt-5">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   const isLoggedIn =
                     localStorage.getItem("isLoggedIn") === "true";
@@ -29,25 +40,34 @@ const HomePage = () => {
                     navigate("/login", { state: { from: "/interactionpage" } });
                   }
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm cursor-pointer font-bold "
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-md text-sm cursor-pointer font-bold"
               >
                 Get Started →
-              </button>
+              </motion.button>
 
-              <button className="border border-gray-600 text-white px-6 py-2 rounded-md text-sm hover:bg-gray-800">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="border border-gray-600 text-white px-6 py-4 rounded-md text-sm hover:bg-gray-800"
+              >
                 Learn More
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Image / Illustration Section */}
-          <div className="md:w-1/2 mt-10 md:mt-0 flex justify-center">
+          {/* Animated Image Section */}
+          <motion.div
+            className="md:w-1/2 mt-10 md:mt-0 flex justify-center"
+            initial={{ x: 100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 1, delay: 0.5 }}
+          >
             <img
-              src="/assets/health-dashboard.png" // replace with actual path
+              src={DashboardImg}
               alt="Health Dashboard Illustration"
               className="rounded-xl shadow-lg max-w-full h-auto"
             />
-          </div>
+          </motion.div>
         </div>
       </div>
       <NewFeatures />
