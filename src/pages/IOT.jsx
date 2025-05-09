@@ -3,18 +3,16 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useLocalStorage } from "react-use";
 import { requestDevice, getDeviceInfo } from "web-bluetooth";
 
-// BLE device information
 const DEVICE_NAME = "Sahaj Perceptron";
 const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 const HEARTRATE_CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 const SPO2_CHAR_UUID = "92a6c5ed-7ef9-4ef3-b0c4-d6b5de0a8c20";
 const IR_VALUE_CHAR_UUID = "78d27e4e-aa05-4d8c-9bc6-3c6c78c8a05f";
 
-// Health ranges
 const SPO2_RANGES = {
-  DANGER: { min: 0, max: 89, color: "#f87171" },    // Red - danger
-  WARNING: { min: 90, max: 94, color: "#facc15" },  // Yellow - warning
-  GOOD: { min: 95, max: 100, color: "#4ade80" }     // Green - good
+  DANGER: { min: 0, max: 89, color: "#f87171" },    
+  WARNING: { min: 90, max: 94, color: "#facc15" },  
+  GOOD: { min: 95, max: 100, color: "#4ade80" }     
 };
 
 const HR_RANGES = {

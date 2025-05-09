@@ -1,7 +1,7 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { Sun } from 'lucide-react'; // or any icon
-
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { UserCircle } from 'lucide-react';
+import Logo from '../assets/SahajIcon.png'
 const navItems = [
   { name: 'Home', path: '/' },
   { name: 'About', path: '/about' },
@@ -11,16 +11,30 @@ const navItems = [
 ];
 
 const Navbar = () => {
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
+    setIsLoggedIn(loggedIn);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setIsLoggedIn(false);
+    navigate('/login');
+  };
+
   return (
     <nav className="bg-[#111827] text-white px-6 py-3 flex justify-between items-center sticky top-0 z-50">
-      {/* Logo */}
+      
       <div className="flex items-center space-x-2">
-        <span className="text-blue-500 text-2xl">⎋</span>
-        <span className="font-bold text-xl text-blue-500">Med.ai</span>
+        <img className="h-16 w-32 rounded-full object-cover" src={Logo} alt="Profile" />
+
       </div>
 
-      {/* Links */}
-      <ul className="flex space-x-6">
+      <ul className="flex space-x-20 text-[1.2vw]">
         {navItems.map(({ name, path }) => (
           <li key={name}>
             <NavLink
@@ -36,14 +50,36 @@ const Navbar = () => {
           </li>
         ))}
       </ul>
-
-      {/* Right Side */}
-      <div className="flex items-center space-x-4">
-        <Sun className="w-5 h-5 text-gray-300 hover:text-white cursor-pointer" />
-        <button className="text-gray-300 hover:text-white">Log in</button>
-        <button className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700">
-          Sign up
-        </button>
+      <div className="relative">
+        {!isLoggedIn ? (
+          <div className="flex items-center space-x-12">
+            <button onClick={() => navigate('/login')} className="text-gray-300 hover:text-white cursor-pointer font-bold">
+              Log in
+            </button>
+            <button
+              onClick={() => navigate('/signup')}
+              className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700 cursor-pointer"
+            >
+              Sign up
+            </button>
+          </div>
+        ) : (
+          <div className="relative ">
+            <button onClick={() => setShowDropdown(!showDropdown)} className="focus:outline-none">
+              <UserCircle className="w-8 h-8 text-gray-300 hover:text-white" />
+            </button>
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-32 bg-white text-black rounded shadow-lg z-50">
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </nav>
   );

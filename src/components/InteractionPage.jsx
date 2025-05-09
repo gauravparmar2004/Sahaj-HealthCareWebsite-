@@ -1,16 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Home as HomeIcon, Bot, Menu } from "lucide-react";
 
 // Import your existing components
 import Home from "../pages/AiHome";
 import AIAssistant from "../pages/AiAssistant";
-import IoT from "../pages/IoT";
+import IoT from "../pages/IOT";
 import Telemedicine from "../pages/Telemedicine";
 import MedicalHistory from "../pages/MedicalHistory";
 
 export default function App() {
   const [expanded, setExpanded] = useState(false);
-  const [page, setPage] = useState("welcome"); // default is welcome
+  const [page, setPage] = useState("welcome");
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const images = [
+    "https://img.freepik.com/free-vector/smart-healthcare-digital-health-flat-composition-text-gear-icons-images-gadgets-artificial-intelligence-vector-illustration_98292-9063.jpg?semt=ais_hybrid&w=740",
+    "https://d12aarmt01l54a.cloudfront.net/cms/images/Media-20220422144416/1200-630.png",
+    "https://images.yourstory.com/cs/2/f02aced0d86311e98e0865c1f0fe59a2/digital-healthcare-1617709572074-1626296926080.png?mode=crop&crop=faces&ar=2%3A1&format=auto&w=1920&q=75",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % images.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const pages = {
     home: <Home />,
@@ -19,8 +34,25 @@ export default function App() {
     telemedicine: <Telemedicine />,
     medical: <MedicalHistory />,
     welcome: (
-      <div className="p-4 h-screen w-screen bg-[#0F1117] text-2xl text-gray-200 font-semibold flex justify-center pt-40">
-        👋 Hello, Gaurav Welcome to the App
+      <div className="p-4 min-h-screen w-full bg-[#0F1117] text-gray-200 font-semibold flex flex-col items-center pt-14">
+        <h1 className="text-4xl mb-8">👋 Hello Welcome to SAHAJ!</h1>
+
+        {/* Carousel */}
+        <div className="w-full max-w-6xl overflow-hidden rounded-lg shadow-lg">
+          <div
+            className="carousel mt-6 flex transition-transform duration-700 ease-in-out "
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          >
+            {images.map((src, idx) => (
+              <img
+                key={idx}
+                src={src}
+                alt={`Slide ${idx + 1}`}
+                className="w-full object-cover h-[70vh] flex-shrink-0"
+              />
+            ))}
+          </div>
+        </div>
       </div>
     ),
   };
@@ -54,6 +86,7 @@ export default function App() {
           <Bot />
           {expanded && <span>AI Assistant</span>}
         </div>
+
         {/* Telemedicine */}
         <div
           className="flex items-center gap-2 cursor-pointer hover:bg-gray-700 p-2 rounded"
@@ -62,6 +95,7 @@ export default function App() {
           <span className="text-lg">🩺</span>
           {expanded && <span>Telemedicine</span>}
         </div>
+
         {/* IoT */}
         <div
           className="flex items-center gap-2 cursor-pointer hover:bg-gray-700 p-2 rounded"
